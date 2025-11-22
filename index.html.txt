@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion de projet - Chantier</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        /* === STYLE GLOBAL (charpente / clair) === */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f4f6; /* gris clair */
+            color: #111827;      /* texte foncé */
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* === ÉCRAN DE CONNEXION === */
+        #login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f97316, #1f2937); /* orange -> gris foncé */
+        }
+
+        .login-card {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.25);
+        }
+
+        .login-card h1 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 22px;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            margin: 0 0 18px 0;
+            font-size: 14px;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .login-card label {
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            color: #111827;
+            font-size: 14px;
+        }
+
+        .login-card input:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 0 0 1px #f97316;
+        }
+
+        .login-card button {
+            margin-top: 16px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            background: #f97316; /* orange charpente */
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .login-card button:hover {
+            background: #ea580c;
+        }
+
+        .login-error {
+            margin-top: 10px;
+            color: #dc2626;
+            font-size: 13px;
+            min-height: 18px;
+        }
+
+        .small {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* === LAYOUT APPLI === */
+        #app {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* === SIDEBAR === */
+        .sidebar {
+            width: 250px;
+            background: #111827;
+            color: #e5e7eb;
+            padding: 16px;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .logo-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            background: #f97316;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-circle svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .sidebar-title {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-title span:first-child {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #9ca3af;
+        }
+
+        .sidebar-title span:last-child {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background: #1f2937;
+        }
+
+        .nav-link.active {
+            background: #f97316;
+            color: #111827;
+            font-weight: bold;
+        }
+
+        /* === HEADER + CONTENT === */
+        .app-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            padding: 10px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-header-title {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header-title span:first-child {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .app-header-title span:last-child {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .app-header-user {
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .logout-btn {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: none;
+            background: #e5e7eb;
+            color: #374151;
+            cursor: pointer;
+            font-size: 13px;
+            margin-left: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #d1d5db;
+        }
+
+        .app-content {
+            padding: 20px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* === CARDS === */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+        }
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        /* === CHAMPS === */
+        .field {
+            margin-bottom: 12px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .field input[type="text"],
+        .field input[type="password"],
+        .field textarea,
+        .field input[type="file"] {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            color: #111827;
+            font-size: 14px;
+        }
+
+        .field textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .field input:focus,
+        .field textarea:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 0 0 1px #f97316;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: none;
+            background: #f97316;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .btn.secondary {
+            background: #6b7280;
+        }
+
+        .btn:hover {
+            opacity: 0.95;
+        }
+
+        /* === LISTES === */
+        .list {
+            margin-top: 10px;
+        }
+
+        .list-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .list-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .tag {
+            padding: 2px 6px;
+            border-radius: 999px;
+            font-size: 11px;
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .tag.admin {
+            background: #bbf7d0;
+            color: #166534;
+        }
+
+        .tag.operator {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .images-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .images-preview img {
+            max-width: 120px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 6px 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #f9fafb;
+        }
+
+        .disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Zone code admin */
+        #custom-code {
+            width: 100%;
+            min-height: 120px;
+            font-family: monospace;
+            background: #0b1120;
+            color: #e5e7eb;
+            border-radius: 8px;
+        }
+
+        #custom-code-output {
+            margin-top: 8px;
+            border: 1px dashed #d1d5db;
+            background: #f9fafb;
+        }
+    </style>
+</head>
+<body>
+
+<!-- === ÉCRAN DE CONNEXION === -->
+<div id="login-screen">
+    <div class="login-card">
+        <h1>Gestion de projet</h1>
+        <h2>Accès chantier sécurisé</h2>
+
+        <div class="field">
+            <label for="login-name">Nom complet</label>
+            <input id="login-name" type="text" placeholder="Ex : Titouan Jourden">
+        </div>
+
+        <div class="field">
+            <label for="login-code">Code d’accès</label>
+            <input id="login-code" type="password" placeholder="Code fourni par l'administrateur">
+        </div>
+
+        <button id="login-btn">Se connecter</button>
+
+        <div class="login-error" id="login-error"></div>
+
+        <p class="small">
+            Comptes existants :<br>
+            - Titouan Jourden (admin)<br>
+            - Killian Jourden (admin)<br>
+            - Evan Talarmin (opérateur)<br>
+            - Nathan Castel (opérateur)
+        </p>
+        <p class="small">
+            Code d’accès : à définir dans le code (variable <strong>ACCESS_CODE</strong>).
+        </p>
+    </div>
+</div>
+
+<!-- === APPLICATION === -->
+<div id="app">
+    <div class="app-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-circle">
+                    <!-- Petit logo charpente / trait / calcul en SVG -->
+                    <svg viewBox="0 0 64 64" aria-hidden="true">
+                        <!-- Toit charpente -->
+                        <polyline points="8,32 32,10 56,32"
+                                  fill="none"
+                                  stroke="#111827"
+                                  stroke-width="4"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        <!-- Poteaux -->
+                        <line x1="16" y1="32" x2="16" y2="50"
+                              stroke="#111827" stroke-width="4"
+                              stroke-linecap="round"/>
+                        <line x1="48" y1="32" x2="48" y2="50"
+                              stroke="#111827" stroke-width="4"
+                              stroke-linecap="round"/>
+                        <!-- Trait de cote -->
+                        <line x1="16" y1="54" x2="48" y2="54"
+                              stroke="#111827" stroke-width="3"
+                              stroke-linecap="round"/>
+                        <!-- Petites graduations -->
+                        <line x1="24" y1="52" x2="24" y2="56"
+                              stroke="#111827" stroke-width="2"/>
+                        <line x1="32" y1="52" x2="32" y2="56"
+                              stroke="#111827" stroke-width="2"/>
+                        <line x1="40" y1="52" x2="40" y2="56"
+                              stroke="#111827" stroke-width="2"/>
+                    </svg>
+                </div>
+                <div class="sidebar-title">
+                    <span>Chantier</span>
+                    <span>Gestion de projet</span>
+                </div>
+            </div>
+
+            <div class="nav-link active" data-page="page-accueil">Accueil / Aide</div>
+            <div class="nav-link" data-page="page-points">Points importants</div>
+            <div class="nav-link" data-page="page-commandes">Commandes</div>
+            <div class="nav-link" data-page="page-fichiers">Fichiers techniques</div>
+            <div class="nav-link" data-page="page-tracabilite">Traçabilité</div>
+            <div class="nav-link" data-page="page-admin" id="nav-admin">Administration</div>
+        </aside>
+
+        <!-- MAIN -->
+        <div class="app-main">
+            <header class="app-header">
+                <div class="app-header-title">
+                    <span>Tableau de bord chantier</span>
+                    <span>Vue d'ensemble de la gestion de projet</span>
+                </div>
+                <div>
+                    <span class="app-header-user" id="user-info"></span>
+                    <button class="logout-btn" id="logout-btn">Déconnexion</button>
+                </div>
+            </header>
+
+            <main class="app-content">
+
+                <!-- ACCUEIL -->
+                <section class="page active" id="page-accueil">
+                    <div class="card">
+                        <h3>Bienvenue sur Gestion de projet</h3>
+                        <p>
+                            Cet outil sert à centraliser les informations de tes chantiers :
+                            points importants, commandes, fichiers techniques et historique des actions.
+                        </p>
+                        <p>
+                            <strong>Organisation du site :</strong>
+                        </p>
+                        <ul>
+                            <li><strong>Accueil / Aide</strong> : explications générales, consignes.</li>
+                            <li><strong>Points importants</strong> : notes + photos/croquis.</li>
+                            <li><strong>Commandes</strong> : PDF + lien Google Sheets (à remplacer par TON lien).</li>
+                            <li><strong>Fichiers techniques</strong> : calculs, fiches matériaux, etc.</li>
+                            <li><strong>Traçabilité</strong> : historique de tout ce qui est fait.</li>
+                            <li><strong>Administration</strong> : gestion des comptes + zone pour coller du code.</li>
+                        </ul>
+                        <p class="small">
+                            Actuellement, les données sont sauvegardées dans ton navigateur (localStorage).
+                            Pour un vrai usage multi-utilisateurs, il faudra plus tard un serveur (Firebase, base de données, etc.).
+                        </p>
+                    </div>
+                </section>
+
+                <!-- POINTS IMPORTANTS -->
+                <section class="page" id="page-points">
+                    <div class="card">
+                        <h3>Points importants du chantier</h3>
+
+                        <div class="field">
+                            <label for="points-texte">Texte / description</label>
+                            <textarea id="points-texte" placeholder="Décrire le point important, les consignes, les risques, etc."></textarea>
+                        </div>
+
+                        <div class="field">
+                            <label for="points-images">Photos / croquis (images)</label>
+                            <input id="points-images" type="file" accept="image/*" multiple>
+                        </div>
+
+                        <button class="btn" id="points-ajouter">Ajouter le point important</button>
+
+                        <div class="list" id="points-liste"></div>
+                    </div>
+                </section>
+
+                <!-- COMMANDES -->
+                <section class="page" id="page-commandes">
+                    <div class="card">
+                        <h3>Commandes (PDF / Google Sheets)</h3>
+
+                        <div class="field">
+                            <label for="commande-pdf">Importer un PDF de commande</label>
+                            <input id="commande-pdf" type="file" accept="application/pdf">
+                        </div>
+
+                        <button class="btn" id="commande-ajouter">Ajouter la commande</button>
+
+                        <div class="list" id="commandes-liste"></div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Google Sheets</h3>
+                        <p class="small">
+                            Colle ici ton lien Google Sheets de commandes<br>
+                            <strong>(à remplacer par TON lien)</strong>.
+                        </p>
+
+                        <div class="field">
+                            <label for="gsheet-url">Lien Google Sheets (à remplacer par TON lien)</label>
+                            <input id="gsheet-url" type="text" placeholder="https://docs.google.com/spreadsheets/...">
+                        </div>
+                        <button class="btn secondary" id="gsheet-maj">Mettre à jour l’aperçu</button>
+
+                        <div style="margin-top:10px;">
+                            <iframe id="gsheet-frame"
+                                    src=""
+                                    style="width:100%; height:300px; border:1px solid #e5e7eb; border-radius:8px;">
+                            </iframe>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FICHIERS TECHNIQUES -->
+                <section class="page" id="page-fichiers">
+                    <div class="card">
+                        <h3>Fichiers techniques et calculs</h3>
+
+                        <div class="field">
+                            <label for="fichier-technique">Importer un fichier (PDF, image, etc.)</label>
+                            <input id="fichier-technique" type="file">
+                        </div>
+
+                        <button class="btn" id="fichier-ajouter">Ajouter le fichier</button>
+
+                        <div class="list" id="fichiers-liste"></div>
+                    </div>
+                </section>
+
+                <!-- TRACABILITE -->
+                <section class="page" id="page-tracabilite">
+                    <div class="card">
+                        <h3>Traçabilité des actions</h3>
+                        <p class="small">
+                            Chaque connexion, ajout de point ou de fichier est enregistré ici
+                            avec la personne et la date.
+                        </p>
+                        <div class="list" id="log-liste"></div>
+                    </div>
+                </section>
+
+                <!-- ADMIN -->
+                <section class="page" id="page-admin">
+                    <div class="card">
+                        <h3>Gestion des utilisateurs</h3>
+                        <p class="small">
+                            Seuls les administrateurs peuvent modifier les comptes.
+                            Tu peux ajouter des personnes, changer leur rôle ou supprimer des comptes.
+                        </p>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Rôle</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="card">
+                        <h3>Ajouter un utilisateur</h3>
+                        <div class="field">
+                            <label for="new-user-name">Nom complet</label>
+                            <input id="new-user-name" type="text" placeholder="Nom et prénom">
+                        </div>
+                        <div class="field">
+                            <label for="new-user-role">Rôle</label>
+                            <select id="new-user-role" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #d1d5db;background:#f9fafb;color:#111827;">
+                                <option value="operator">Opérateur</option>
+                                <option value="admin">Administrateur</option>
+                            </select>
+                        </div>
+                        <button class="btn" id="add-user-btn">Ajouter l’utilisateur</button>
+                    </div>
+
+                    <div class="card">
+                        <h3>Zone d’extension (coller du code)</h3>
+                        <p class="small">
+                            Ici tu peux coller du code HTML / CSS / JS simple pour tester
+                            de nouvelles idées sans toucher tout le reste du site.<br>
+                            Le code sera affiché dans le bloc juste en dessous.
+                        </p>
+
+                        <div class="field">
+                            <label for="custom-code">Code à coller (par ex. un bouton, un tableau, un texte...)</label>
+                            <textarea id="custom-code" placeholder="&lt;div&gt;Nouveau bloc chantier&lt;/div&gt;"></textarea>
+                        </div>
+
+                        <button class="btn secondary" id="apply-custom-code">Appliquer ce code</button>
+
+                        <div id="custom-code-output" class="card">
+                            <p class="small">
+                                Résultat de ton code : ce que tu colles ci-dessus apparaîtra ici.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+</div>
+
+<script>
+    // === CONFIG & UTILISATEURS ===
+    const ACCESS_CODE = "CHANTIER2025"; // Code d’accès à modifier
+
+    const DEFAULT_USERS = [
+        { name: "Titouan Jourden", role: "admin" },
+        { name: "Killian Jourden", role: "admin" },
+        { name: "Evan Talarmin", role: "operator" },
+        { name: "Nathan Castel", role: "operator" }
+    ];
+
+    let users = [];
+    let currentUser = null;
+
+    loadUsersFromStorage();
+
+    // === FONCTIONS UTILITAIRES ===
+    function formatDate(iso) {
+        const d = new Date(iso);
+        return d.toLocaleString("fr-FR");
+    }
+
+    function saveUsersToStorage() {
+        localStorage.setItem("users", JSON.stringify(users));
+    }
+
+    function loadUsersFromStorage() {
+        const stored = localStorage.getItem("users");
+        if (stored) {
+            users = JSON.parse(stored);
+        } else {
+            users = DEFAULT_USERS;
+            saveUsersToStorage();
+        }
+    }
+
+    function logAction(type, details) {
+        const logs = JSON.parse(localStorage.getItem("logs") || "[]");
+        logs.push({
+            type,
+            details,
+            user: currentUser ? currentUser.name : "Inconnu",
+            date: new Date().toISOString()
+        });
+        localStorage.setItem("logs", JSON.stringify(logs));
+        renderLogs();
+    }
+
+    // === GESTION LOGIN ===
+    const loginScreen = document.getElementById("login-screen");
+    const app = document.getElementById("app");
+    const loginNameInput = document.getElementById("login-name");
+    const loginCodeInput = document.getElementById("login-code");
+    const loginBtn = document.getElementById("login-btn");
+    const loginError = document.getElementById("login-error");
+    const userInfoSpan = document.getElementById("user-info");
+    const logoutBtn = document.getElementById("logout-btn");
+    const navAdmin = document.getElementById("nav-admin");
+
+    loginBtn.addEventListener("click", () => {
+        const name = loginNameInput.value.trim();
+        const code = loginCodeInput.value.trim();
+
+        if (!name || !code) {
+            loginError.textContent = "Merci de remplir les deux champs.";
+            return;
+        }
+
+        if (code !== ACCESS_CODE) {
+            loginError.textContent = "Code d’accès incorrect.";
+            return;
+        }
+
+        let user = users.find(u => u.name.toLowerCase() === name.toLowerCase());
+        if (!user) {
+            loginError.textContent = "Utilisateur inconnu. Demande à un admin de t’ajouter.";
+            return;
+        }
+
+        currentUser = user;
+        userInfoSpan.textContent = currentUser.name + " (" + (currentUser.role === "admin" ? "Administrateur" : "Opérateur") + ")";
+        loginError.textContent = "";
+        loginScreen.style.display = "none";
+        app.style.display = "block";
+
+        if (currentUser.role === "admin") {
+            navAdmin.style.display = "block";
+        } else {
+            navAdmin.style.display = "none";
+        }
+
+        logAction("LOGIN", "Connexion de " + currentUser.name);
+        renderUsers();
+        renderLogs();
+        renderPoints();
+        renderCommandes();
+        renderFichiers();
+    });
+
+    logoutBtn.addEventListener("click", () => {
+        if (currentUser) {
+            logAction("LOGOUT", "Déconnexion de " + currentUser.name);
+        }
+        currentUser = null;
+        app.style.display = "none";
+        loginScreen.style.display = "flex";
+        loginNameInput.value = "";
+        loginCodeInput.value = "";
+    });
+
+    // === NAVIGATION ===
+    const navLinks = document.querySelectorAll(".nav-link");
+    const pages = document.querySelectorAll(".page");
+
+    function showPage(pageId) {
+        pages.forEach(p => p.classList.toggle("active", p.id === pageId));
+        navLinks.forEach(link =>
+            link.classList.toggle("active", link.getAttribute("data-page") === pageId)
+        );
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener("click", () => {
+            const pageId = link.getAttribute("data-page");
+            if (pageId === "page-admin" && (!currentUser || currentUser.role !== "admin")) {
+                alert("Accès réservé aux administrateurs.");
+                return;
+            }
+            showPage(pageId);
+        });
+    });
+
+    // === POINTS IMPORTANTS ===
+    const pointsTexte = document.getElementById("points-texte");
+    const pointsImagesInput = document.getElementById("points-images");
+    const pointsAjouterBtn = document.getElementById("points-ajouter");
+    const pointsListeDiv = document.getElementById("points-liste");
+
+    function getPoints() {
+        return JSON.parse(localStorage.getItem("points") || "[]");
+    }
+
+    function savePoints(points) {
+        localStorage.setItem("points", JSON.stringify(points));
+    }
+
+    function renderPoints() {
+        const points = getPoints();
+        pointsListeDiv.innerHTML = "";
+        points.forEach((pt, index) => {
+            const item = document.createElement("div");
+            item.className = "list-item";
+
+            const header = document.createElement("div");
+            header.className = "list-item-header";
+
+            const title = document.createElement("div");
+            title.textContent = "Point #" + (index + 1);
+
+            const meta = document.createElement("div");
+            meta.className = "small";
+            meta.textContent = formatDate(pt.date) + " - " + pt.user;
+
+            header.appendChild(title);
+            header.appendChild(meta);
+
+            const text = document.createElement("div");
+            text.textContent = pt.text;
+
+            item.appendChild(header);
+            item.appendChild(text);
+
+            if (pt.images && pt.images.length > 0) {
+                const imgContainer = document.createElement("div");
+                imgContainer.className = "images-preview";
+                pt.images.forEach(src => {
+                    const img = document.createElement("img");
+                    img.src = src;
+                    imgContainer.appendChild(img);
+                });
+                item.appendChild(imgContainer);
+            }
+
+            pointsListeDiv.appendChild(item);
+        });
+    }
+
+    pointsAjouterBtn.addEventListener("click", () => {
+        if (!currentUser) return;
+
+        const text = pointsTexte.value.trim();
+        if (!text) {
+            alert("Merci de saisir un texte pour le point important.");
+            return;
+        }
+
+        const files = Array.from(pointsImagesInput.files);
+        const imagesData = [];
+
+        if (files.length === 0) {
+            finalizePoint(imagesData);
+        } else {
+            let loaded = 0;
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagesData.push(e.target.result);
+                    loaded++;
+                    if (loaded === files.length) {
+                        finalizePoint(imagesData);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function finalizePoint(imagesData) {
+            const points = getPoints();
+            points.push({
+                text,
+                images: imagesData,
+                user: currentUser.name,
+                date: new Date().toISOString()
+            });
+            savePoints(points);
+            pointsTexte.value = "";
+            pointsImagesInput.value = "";
+            renderPoints();
+            logAction("POINT_ADDED", "Nouveau point important ajouté.");
+        }
+    });
+
+    // === COMMANDES ===
+    const commandePdfInput = document.getElementById("commande-pdf");
+    const commandeAjouterBtn = document.getElementById("commande-ajouter");
+    const commandesListeDiv = document.getElementById("commandes-liste");
+    const gsheetUrlInput = document.getElementById("gsheet-url");
+    const gsheetFrame = document.getElementById("gsheet-frame");
+    const gsheetMajBtn = document.getElementById("gsheet-maj");
+
+    function getCommandes() {
+        return JSON.parse(localStorage.getItem("commandes") || "[]");
+    }
+
+    function saveCommandes(cmds) {
+        localStorage.setItem("commandes", JSON.stringify(cmds));
+    }
+
+    function renderCommandes() {
+        const cmds = getCommandes();
+        commandesListeDiv.innerHTML = "";
+        cmds.forEach((cmd, index) => {
+            const item = document.createElement("div");
+            item.className = "list-item";
+
+            const header = document.createElement("div");
+            header.className = "list-item-header";
+
+            const title = document.createElement("div");
+            title.textContent = "Commande #" + (index + 1);
+
+            const meta = document.createElement("div");
+            meta.className = "small";
+            meta.textContent = formatDate(cmd.date) + " - " + cmd.user;
+
+            header.appendChild(title);
+            header.appendChild(meta);
+
+            const link = document.createElement("a");
+            link.href = cmd.url;
+            link.target = "_blank";
+            link.textContent = cmd.filename;
+
+            item.appendChild(header);
+            item.appendChild(link);
+
+            commandesListeDiv.appendChild(item);
+        });
+
+        const storedUrl = localStorage.getItem("gsheetUrl");
+        if (storedUrl) {
+            gsheetUrlInput.value = storedUrl;
+            gsheetFrame.src = storedUrl;
+        }
+    }
+
+    commandeAjouterBtn.addEventListener("click", () => {
+        if (!currentUser) return;
+        const file = commandePdfInput.files[0];
+        if (!file) {
+            alert("Merci de sélectionner un fichier PDF.");
+            return;
+        }
+        if (file.type !== "application/pdf") {
+            alert("Le fichier doit être un PDF.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const cmds = getCommandes();
+            const blobUrl = URL.createObjectURL(new Blob([e.target.result], { type: "application/pdf" }));
+            cmds.push({
+                filename: file.name,
+                url: blobUrl,
+                user: currentUser.name,
+                date: new Date().toISOString()
+            });
+            saveCommandes(cmds);
+            renderCommandes();
+            commandePdfInput.value = "";
+            logAction("COMMANDE_ADDED", "PDF de commande ajouté : " + file.name);
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    gsheetMajBtn.addEventListener("click", () => {
+        const url = gsheetUrlInput.value.trim();
+        if (!url) {
+            alert("Merci de saisir une URL Google Sheets.");
+            return;
+        }
+        gsheetFrame.src = url;
+        localStorage.setItem("gsheetUrl", url);
+        logAction("GSHEET_UPDATED", "URL Google Sheets mise à jour.");
+    });
+
+    // === FICHIERS TECHNIQUES ===
+    const fichierInput = document.getElementById("fichier-technique");
+    const fichierAjouterBtn = document.getElementById("fichier-ajouter");
+    const fichiersListeDiv = document.getElementById("fichiers-liste");
+
+    function getFichiers() {
+        return JSON.parse(localStorage.getItem("fichiers") || "[]");
+    }
+
+    function saveFichiers(files) {
+        localStorage.setItem("fichiers", JSON.stringify(files));
+    }
+
+    function renderFichiers() {
+        const files = getFichiers();
+        fichiersListeDiv.innerHTML = "";
+        files.forEach((f, index) => {
+            const item = document.createElement("div");
+            item.className = "list-item";
+
+            const header = document.createElement("div");
+            header.className = "list-item-header";
+
+            const title = document.createElement("div");
+            title.textContent = "Fichier #" + (index + 1);
+
+            const meta = document.createElement("div");
+            meta.className = "small";
+            meta.textContent = formatDate(f.date) + " - " + f.user;
+
+            header.appendChild(title);
+            header.appendChild(meta);
+
+            const link = document.createElement("a");
+            link.href = f.url;
+            link.target = "_blank";
+            link.textContent = f.filename;
+
+            item.appendChild(header);
+            item.appendChild(link);
+
+            fichiersListeDiv.appendChild(item);
+        });
+    }
+
+    fichierAjouterBtn.addEventListener("click", () => {
+        if (!currentUser) return;
+        const file = fichierInput.files[0];
+        if (!file) {
+            alert("Merci de sélectionner un fichier.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const files = getFichiers();
+            const blobUrl = URL.createObjectURL(new Blob([e.target.result], { type: file.type }));
+            files.push({
+                filename: file.name,
+                url: blobUrl,
+                user: currentUser.name,
+                date: new Date().toISOString()
+            });
+            saveFichiers(files);
+            renderFichiers();
+            fichierInput.value = "";
+            logAction("FILE_ADDED", "Fichier technique ajouté : " + file.name);
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    // === TRACABILITE ===
+    const logListeDiv = document.getElementById("log-liste");
+
+    function getLogs() {
+        return JSON.parse(localStorage.getItem("logs") || "[]");
+    }
+
+    function renderLogs() {
+        const logs = getLogs();
+        logListeDiv.innerHTML = "";
+        logs.slice().reverse().forEach(log => {
+            const item = document.createElement("div");
+            item.className = "list-item";
+
+            const header = document.createElement("div");
+            header.className = "list-item-header";
+
+            const typeTag = document.createElement("span");
+            typeTag.className = "tag";
+            typeTag.textContent = log.type;
+
+            const dateSpan = document.createElement("span");
+            dateSpan.className = "small";
+            dateSpan.textContent = formatDate(log.date) + " - " + log.user;
+
+            header.appendChild(typeTag);
+            header.appendChild(dateSpan);
+
+            const detailsDiv = document.createElement("div");
+            detailsDiv.textContent = log.details;
+
+            item.appendChild(header);
+            item.appendChild(detailsDiv);
+
+            logListeDiv.appendChild(item);
+        });
+    }
+
+    // === ADMIN UTILISATEURS + ZONE CODE ===
+    const usersTableBody = document.getElementById("users-table-body");
+    const newUserNameInput = document.getElementById("new-user-name");
+    const newUserRoleSelect = document.getElementById("new-user-role");
+    const addUserBtn = document.getElementById("add-user-btn");
+
+    const customCodeTextarea = document.getElementById("custom-code");
+    const customCodeOutput = document.getElementById("custom-code-output");
+    const applyCustomCodeBtn = document.getElementById("apply-custom-code");
+
+    function renderUsers() {
+        usersTableBody.innerHTML = "";
+        users.forEach((u, index) => {
+            const tr = document.createElement("tr");
+
+            const tdName = document.createElement("td");
+            tdName.textContent = u.name;
+
+            const tdRole = document.createElement("td");
+            const roleSpan = document.createElement("span");
+            roleSpan.className = "tag " + (u.role === "admin" ? "admin" : "operator");
+            roleSpan.textContent = u.role === "admin" ? "Admin" : "Opérateur";
+            tdRole.appendChild(roleSpan);
+
+            const tdActions = document.createElement("td");
+
+            const isProtected = (u.name.toLowerCase() === "titouan jourden".toLowerCase());
+
+            const toggleRoleBtn = document.createElement("button");
+            toggleRoleBtn.textContent = u.role === "admin" ? "Passer opérateur" : "Passer admin";
+            toggleRoleBtn.className = "btn secondary";
+            toggleRoleBtn.style.marginRight = "4px";
+
+            if (isProtected) {
+                toggleRoleBtn.classList.add("disabled");
+                toggleRoleBtn.disabled = true;
+            }
+
+            toggleRoleBtn.addEventListener("click", () => {
+                if (!currentUser || currentUser.role !== "admin") return;
+                u.role = (u.role === "admin") ? "operator" : "admin";
+                saveUsersToStorage();
+                renderUsers();
+                logAction("USER_ROLE_CHANGED", "Rôle modifié pour " + u.name + " -> " + u.role);
+            });
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "Supprimer";
+            deleteBtn.className = "btn secondary";
+
+            if (isProtected) {
+                deleteBtn.classList.add("disabled");
+                deleteBtn.disabled = true;
+            }
+
+            deleteBtn.addEventListener("click", () => {
+                if (!currentUser || currentUser.role !== "admin") return;
+                if (!confirm("Supprimer l’utilisateur " + u.name + " ?")) return;
+                users.splice(index, 1);
+                saveUsersToStorage();
+                renderUsers();
+                logAction("USER_DELETED", "Utilisateur supprimé : " + u.name);
+            });
+
+            tdActions.appendChild(toggleRoleBtn);
+            tdActions.appendChild(deleteBtn);
+
+            tr.appendChild(tdName);
+            tr.appendChild(tdRole);
+            tr.appendChild(tdActions);
+
+            usersTableBody.appendChild(tr);
+        });
+    }
+
+    addUserBtn.addEventListener("click", () => {
+        if (!currentUser || currentUser.role !== "admin") {
+            alert("Seuls les administrateurs peuvent ajouter des utilisateurs.");
+            return;
+        }
+
+        const name = newUserNameInput.value.trim();
+        const role = newUserRoleSelect.value;
+
+        if (!name) {
+            alert("Merci de saisir un nom.");
+            return;
+        }
+
+        if (users.find(u => u.name.toLowerCase() === name.toLowerCase())) {
+            alert("Un utilisateur avec ce nom existe déjà.");
+            return;
+        }
+
+        users.push({ name, role });
+        saveUsersToStorage();
+        renderUsers();
+        logAction("USER_ADDED", "Nouvel utilisateur ajouté : " + name + " (" + role + ")");
+        newUserNameInput.value = "";
+        newUserRoleSelect.value = "operator";
+    });
+
+    // Zone pour coller du code
+    applyCustomCodeBtn.addEventListener("click", () => {
+        if (!currentUser || currentUser.role !== "admin") {
+            alert("Seuls les administrateurs peuvent appliquer du code.");
+            return;
+        }
+        const code = customCodeTextarea.value;
+        customCodeOutput.innerHTML = code;
+        logAction("CUSTOM_CODE_APPLIED", "Code personnalisé appliqué dans la zone d’extension.");
+    });
+
+    // Rendu initial
+    renderLogs();
+    renderPoints();
+    renderCommandes();
+    renderFichiers();
+</script>
+
+</body>
+</html>
